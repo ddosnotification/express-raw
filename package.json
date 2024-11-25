@@ -1,6 +1,6 @@
 {
   "name": "express-raw",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Powerful Express.js utility package for better work with Express. Zero dependencies.",
   "main": "src/index.js",
   "scripts": {
