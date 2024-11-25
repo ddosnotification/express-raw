@@ -22,7 +22,7 @@ const express = require('express');
 const { expressLogger, getRequestInfo, detectDevTools, mouseTracker } = require('express-raw');
 
 const app = express();
-const logger = new ExpressLogger();
+const logger = new expressLogger();
 
 app.use(logger.middleware());
 
@@ -56,7 +56,7 @@ const script = tracker.getScript();
 
 ### Enhanced Logging
 ```javascript
-const logger = new ExpressLogger({
+const logger = new expressLogger({
   enabled: {
     heartbeat: true,
     requests: true,
@@ -69,7 +69,7 @@ const logger = new ExpressLogger({
 
 ## API Reference
 
-### ExpressLogger Options
+### expressLogger Options
 ```javascript
 {
   enabled: {
@@ -133,7 +133,7 @@ const express = require('express');
 const { expressLogger, detectDevTools, mouseTracker, getRequestInfo } = require('express-raw');
 
 const app = express();
-const logger = new ExpressLogger();
+const logger = new expressLogger();
 
 // Basic middleware
 app.use(express.json());
@@ -219,10 +219,10 @@ Common issues and solutions:
 
 ```javascript
 // Fix: Logger not showing colors
-const logger = new ExpressLogger({ colors: true });
+const logger = new expressLogger({ colors: true });
 
 // Fix: Heartbeat too frequent
-const logger = new ExpressLogger({ heartbeatInterval: 30000 });
+const logger = new expressLogger({ heartbeatInterval: 30000 });
 
 // Fix: Missing request body
 app.use(express.json());
