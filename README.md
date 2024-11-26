@@ -95,10 +95,27 @@ const limiter = new RateLimiter({
 }
 ```
 
-[Previous logging outputs section]
+## Output Examples
 
-Add new example output:
 ```
+[2024-11-25T19:38:20.177Z] ⚡ [SERVER] Server started
+    Port: 3000
+    Environment: development
+    NodeVersion: v22.11.0
+    Memory: 8MB
+
+[2024-11-25T19:38:25.123Z] ○ [INFO] GET /test
+    IP: ::1
+    UserAgent: Mozilla/5.0
+    RequestId: 1
+    ActiveConnections: 1
+
+[2024-11-25T19:38:25.234Z] ♥ [HEARTBEAT] System Status
+    Uptime: 5s
+    Requests: 1
+    HeapUsed: 12MB
+    RequestsPerSecond: 0.2
+
 [2024-11-25T19:38:26.177Z] ⚠️ [RATELIMIT] Rate limit exceeded for 192.168.1.1
     IP: 192.168.1.1
     Path: /api/test
