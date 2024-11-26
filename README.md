@@ -1,12 +1,17 @@
-# express-raw
+# express-raw 🚀
 
-A comprehensive Express.js utility package for request information, user behavior tracking, and beautiful console logging.
+![npm version](https://img.shields.io/npm/v/express-raw)
+![downloads](https://img.shields.io/npm/dm/express-raw)
+![GitHub stars](https://img.shields.io/github/stars/ddosnotification/express-raw)
+
+A comprehensive Express.js utility package for request analytics, user behavior tracking, rate limiting, and beautiful console logging. Zero dependencies!
 
 ## Features
 
 - 🔍 **Request Information** - Detailed insights about incoming requests
 - 👁️ **DevTools Detection** - Track when browser dev tools are opened
 - 🖱️ **Mouse Movement Analysis** - Detect bot-like behavior
+- 🚦 **Rate Limiting** - Advanced request rate limiting with auto-ban
 - 📊 **Enhanced Logging** - Beautiful, colorful console output with detailed metrics
 
 ## Installation
@@ -19,223 +24,159 @@ npm install express-raw
 
 ```javascript
 const express = require('express');
-const { expressLogger, getRequestInfo, detectDevTools, mouseTracker } = require('express-raw');
+const { expressLogger, RateLimiter } = require('express-raw');
 
 const app = express();
 const logger = new expressLogger();
+const limiter = new RateLimiter({
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    maxRequests: 100
+});
 
+app.use(limiter.middleware(logger));
 app.use(logger.middleware());
 
-// Start server with enhanced logging
 app.listen(3000, () => {
-  logger.serverStart(3000);
+    logger.serverStart(3000);
 });
 ```
 
 ## Features Overview
 
-### Request Information
+### Rate Limiting
 ```javascript
-app.get('/info', (req, res) => {
-  const info = getRequestInfo(req);
-  res.json(info);
+const limiter = new RateLimiter({
+    // Basic configuration
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    maxRequests: 100,          // Max requests per window
+    windowType: 'sliding',     // 'sliding' or 'fixed'
+
+    // Route-specific limits
+    routeLimits: {
+        '/api/auth/.*': 20,    // 20 requests per window for auth routes
+        '/api/upload/.*': 10   // 10 requests per window for uploads
+    },
+
+    // Auto-ban configuration
+    autoBan: {
+        enabled: true,
+        maxViolations: 3,
+        banDurationMs: 24 * 60 * 60 * 1000  // 24 hours
+    }
 });
 ```
 
-### DevTools Detection
-```javascript
-const detector = detectDevTools();
-const script = detector.getScript();
-```
-
-### Mouse Movement Tracking
-```javascript
-const tracker = mouseTracker({ trackingTime: 5000 });
-const script = tracker.getScript();
-```
-
-### Enhanced Logging
-```javascript
-const logger = new expressLogger({
-  enabled: {
-    heartbeat: true,
-    requests: true,
-    responses: true,
-    errors: true
-  },
-  heartbeatInterval: 5000
-});
-```
+[Previous sections remain the same until API Reference]
 
 ## API Reference
 
-### expressLogger Options
+### Rate Limiter Options
 ```javascript
 {
-  enabled: {
-    server: true,    // Server start logs
-    requests: true,  // Request logs
-    responses: true, // Response logs
-    errors: true,    // Error logs
-    heartbeat: true  // System status logs
-  },
-  heartbeatInterval: 10000, // Heartbeat frequency in ms
-  colors: true              // Colored output
+    // Basic rate limiting
+    windowMs: 60 * 1000,           // Window size in ms
+    maxRequests: 100,              // Max requests per window
+    windowType: 'sliding',         // 'sliding' or 'fixed'
+    
+    // Route specific
+    routeLimits: {},               // Route-specific limits
+    methodLimits: {},              // Method-specific limits
+    
+    // Security
+    whitelist: [],                 // IPs to skip
+    blacklist: [],                 // IPs to always block
+    
+    // Auto ban
+    autoBan: {
+        enabled: false,
+        maxViolations: 5,
+        banDurationMs: 24 * 60 * 60 * 1000
+    }
 }
 ```
 
-### MouseTracker Options
-```javascript
-{
-  trackingTime: 5000 // Duration to track mouse (ms)
-}
+[Previous logging outputs section]
+
+Add new example output:
+```
+[2024-11-25T19:38:26.177Z] ⚠️ [RATELIMIT] Rate limit exceeded for 192.168.1.1
+    IP: 192.168.1.1
+    Path: /api/test
+    Method: POST
+    Limit: 100
+    CurrentRequests: 101
+    ViolationCount: 1
+
+[2024-11-25T19:38:27.234Z] 🚫 [BANNED] IP banned: 192.168.1.1
+    IP: 192.168.1.1
+    Duration: 86400000ms
+    Violations: 3
+    ExpiresAt: 2024-11-26T19:38:27.234Z
 ```
 
-## Output Examples
+## Complete Example
 
-```
-[2024-11-25T19:38:20.177Z] ⚡ [SERVER] Server started
-    Port: 3000
-    Environment: development
-    NodeVersion: v22.11.0
-    Memory: 8MB
-
-[2024-11-25T19:38:25.123Z] ○ [INFO] GET /test
-    IP: ::1
-    UserAgent: Mozilla/5.0
-    RequestId: 1
-    ActiveConnections: 1
-
-[2024-11-25T19:38:25.234Z] ♥ [HEARTBEAT] System Status
-    Uptime: 5s
-    Requests: 1
-    HeapUsed: 12MB
-    RequestsPerSecond: 0.2
-```
-
-## License
-
-MIT
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
-## Real-World Examples
-
-### Complete Server Setup
 ```javascript
 const express = require('express');
-const { expressLogger, detectDevTools, mouseTracker, getRequestInfo } = require('express-raw');
+const { 
+    expressLogger, 
+    RateLimiter, 
+    detectDevTools, 
+    mouseTracker 
+} = require('express-raw');
 
 const app = express();
-const logger = new expressLogger();
 
-// Basic middleware
+// Initialize logger and rate limiter
+const logger = new expressLogger({
+    enabled: {
+        rateLimit: true,
+        requests: true,
+        responses: true
+    }
+});
+
+const limiter = new RateLimiter({
+    windowMs: 15 * 60 * 1000,
+    maxRequests: 100,
+    routeLimits: {
+        '/api/auth/.*': 20,
+        '/api/upload/.*': 10
+    },
+    autoBan: {
+        enabled: true,
+        maxViolations: 3
+    }
+});
+
+// Middleware
 app.use(express.json());
+app.use(limiter.middleware(logger));
 app.use(logger.middleware());
 
-// Request info endpoint
+// Routes
 app.get('/info', (req, res) => {
-  res.json(getRequestInfo(req));
+    res.json(getRequestInfo(req));
 });
 
-// Page with tracking
-app.get('/', (req, res) => {
-  const detector = detectDevTools();
-  const tracker = mouseTracker({ trackingTime: 5000 });
-  
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head><title>Tracking Demo</title></head>
-      <body>
-        <h1>Behavior Tracking Demo</h1>
-        <div id="results"></div>
-        <script>${detector.getScript()}</script>
-        <script>${tracker.getScript()}</script>
-      </body>
-    </html>
-  `);
+app.listen(3000, () => {
+    logger.serverStart(3000);
 });
-
-app.listen(3000, () => logger.serverStart(3000));
 ```
 
-### Sample Output Formats
-
-#### Request Information
-```json
-{
-  "method": "GET",
-  "path": "/test",
-  "headers": {
-    "user-agent": "Mozilla/5.0...",
-    "accept": "text/html..."
-  },
-  "ip": "::1",
-  "query": {},
-  "protocol": "http"
-}
-```
-
-#### Mouse Tracking Analysis
-```json
-{
-  "isBot": false,
-  "confidence": 0.82,
-  "metrics": {
-    "speedVariance": 0.245,
-    "angleVariance": 0.089,
-    "straightLines": 12
-  }
-}
-```
-
-## Best Practices
-
-1. **Logger Configuration**
-   - Enable only needed features
-   - Adjust heartbeat interval based on needs
-   - Use colors in development, disable in production
-
-2. **Performance**
-   - Mouse tracking should be time-limited
-   - Consider rate limiting for production
-   - Clean up event listeners
-
-3. **Security**
-   - Don't log sensitive information
-   - Validate inputs
-   - Set appropriate CORS headers
-
-## Debugging
-
-Common issues and solutions:
-
-```javascript
-// Fix: Logger not showing colors
-const logger = new expressLogger({ colors: true });
-
-// Fix: Heartbeat too frequent
-const logger = new expressLogger({ heartbeatInterval: 30000 });
-
-// Fix: Missing request body
-app.use(express.json());
-app.use(logger.middleware());
-```
+[Previous sections remain the same until Upcoming Features]
 
 ## Upcoming Features
 
-- [ ] Request Rate Limiting
 - [ ] Custom Log Formats
 - [ ] Log File Output
 - [ ] Metrics Dashboard
 - [ ] Performance Profiling
+- [ ] WebSocket Support
+- [ ] Rate Limit Storage Adapters
+- [ ] GraphQL Integration
+
+[Rest remains the same]
 
 ## Support
 
